@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat</title>
+  </head>
+  <body>
+    <textarea id="input" placeholder="Введите ваше сообщение"></textarea>
+    <button id="send">Отправить</button>
+    <div id="messages"></div>
+
+    <script
+      src="https://cdn.socket.io/4.5.3/socket.io.min.js"
+      integrity="sha384-WPFUvHkB1aHA5TDSZi6xtDgkF0wXJcIIxXhC6h8OT8EH3fC5PWro5pWJ1THjcfEi"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const socket = io('localhost:3000', {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 99999,
+      });
+      const addMessage = (msg) => {
+        const msgSpan = (document.createElement('span').innerHTML =
+          msg.name + ': ' + msg.msg);
+        document.getElementById('messages').append(msgSpan);
+        document
+          .getElementById('messages')
+          .append(document.createElement('br'));
+      };
+      const infoMessage = (msg) => {
+        const msgSpan = (document.createElement('span').innerHTML = msg.msg);
+        document.getElementById('messages').append(msgSpan);
+        document
+          .getElementById('messages')
+          .append(document.createElement('br'));
+      };
+
+      socket.on('connect', function () {
+        console.log('Successful connected to server');
+      });
+
+      socket.on('SERVER_MSG', function (data) {
+        addMessage(data);
+      });
+
+      socket.on('NEW_CONN_EVENT', function (data) {
+        infoMessage(data);
+      });
+      socket.on('reconnect', (attempt) => {
+        socket.emit('CLIENT_MSG', {
+          msg: `${name} is reconnect`,
+        });
+      });
+      document.getElementById('send').onclick = function () {
+        socket.emit('CLIENT_MSG', {
+          msg: document.getElementById('input').value,
+        });
+        document.getElementById('input').value = '';
+      };
+    </script>
+  </body>
+</html>
